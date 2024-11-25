@@ -10,6 +10,11 @@ const app = express();
 
 app.use(cors());
 
+app.use((req, res, next) => {
+    res.header("Access-Control-Expose-Headers", "X-Total-Count");
+    next();
+});
+
 // Middleware para interpretar JSON nas requisições 
 app.use(express.json());
 

@@ -29,15 +29,25 @@ export const createPost = async (request, response) => {
 
 // Listar todos os posts
 export const getAllPosts = async (request, response) => {
-    const { data, error } = await supabase
+    const { _page = 1, _limit = 10 } = request.query;
+    const start = (_page - 1) * _limit;
+    const end = start + _limit -1;
+
+    console.log(`Start: ${start}, End: ${end}`);
+
+    const { data, error, count } = await supabase
         .from('posts')
-        .select('*');
+        .select('*', { count: 'exact' })
+        .range(start, end); // Ajustado para corresponder ao intervalo de paginação
 
     if (error) {
         return response.status(500).json({ error: error.message });
     }
+
+    response.set('Access-Control-Expose-Headers', 'x-total-count', count); // Envia o total de posts para o frontend
     response.json(data);
 };
+
 
 // Listar post por ID
 export const getPostById = async (request, response) => {
@@ -65,7 +75,7 @@ export const updatePost = async (request, response) => {
             .eq('id', postId);
 
         if (error) throw error
-        response.status(200).json({ message: 'Post alterado com sucesso!'});
+        response.status(200).json({ message: 'Post alterado com sucesso!' });
 
     } catch (error) {
         response.status(500).json({ error: 'Falha na criação do post' });
